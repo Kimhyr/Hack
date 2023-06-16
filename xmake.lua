@@ -4,6 +4,6 @@ set_warnings('everything')
 set_toolchains('clang')
 set_languages('c++23')
 
-target('test')
+target('hack')
 	set_kind('binary')
 	add_files('source/*.cpp', 'source/*.cppm')
