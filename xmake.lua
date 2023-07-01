@@ -17,10 +17,6 @@ target('hack')
 	set_kind('binary')
 	add_files('hack/**.cppm', 'hack/**.cpp')
 
-target('u')
+target('core')
 	set_kind('static')
-	add_files('u/**.cppm', 'u/**.cpp')
-
-target('test')
-	set_kind('binary')
-	add_files('test/**.cpp')
+	add_files('core/**.cppm', 'core/**.cpp')

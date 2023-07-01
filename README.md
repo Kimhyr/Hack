@@ -13,3 +13,14 @@
 1. Execute `xmake` in the root directory of this repository.
 
 2. The executable binary should be located in the directory `build/<platform>/<architecture>/<build-mode>/`.
+
+## Internals
+
+
+BOOK
+
+  * table of contents
+
+    - list of booleans denoting whether a page is free or not.
+
+  * pages of 128 bytes
