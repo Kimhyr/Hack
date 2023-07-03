@@ -4,6 +4,8 @@ set_warnings('everything')
 set_toolchains('clang')
 set_languages('c++23')
 
+add_cxxflags('-fmodule-map-file=build/std.modulemap')
+
 add_includedirs('.')
 
 if is_mode('debug') then

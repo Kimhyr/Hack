@@ -1,32 +1,44 @@
-//
-// Book
-// |- Statistics
-// |- Data
-// |   |- Statistics
-// |- Page
-// |   |- Container
-// |      |- Iterator
-// |- Iterator
-// |- Table
-// |- Cursor
-// 
+module;
+
+#include <cstddef>
+#include <cstdint>
+#include <array>
+#include <iterator>
+#include <compare>
 
 export module hack.book;
 
-import core.containers;
-using core::Array;
-
-import core.types;
-using core::U64, core::U8, core::B32;
+using std::ptrdiff_t,
+      std::byte;
+using std::uint64_t;
+using std::array;
+using std::forward_iterator_tag,
+      std::random_access_iterator_tag,
+      std::forward_iterator,
+      std::random_access_iterator;
+using std::strong_ordering;
 
 namespace hack
 {
-    class Book
+    class [[gnu::packed]] Book
     {
     public:
-        struct Statistics
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpadded"
+        struct Flags
+#pragma clang diagnostic pop
         {
-            using Count = U64;
+
+            using Bits = uint64_t;
+
+            Bits writable : 1;
+        };
+
+        static_assert(sizeof(Flags) == 8);
+        
+        struct [[gnu::packed]] Metadata
+        {
+            using Count = uint64_t;
 
             Count pages{1};
             Count bytes{0};
@@ -34,73 +46,108 @@ namespace hack
             Count columns{0};
         };
 
-        static_assert(sizeof(Statistics) == 32);
-        
-        struct Data
-        {       
-            struct Statistics
+        static_assert(sizeof(Metadata) == 32);
+
+        class [[gnu::packed]] Next
+        {
+            friend class Book;
+
+        public:
+            using This = Next;
+
+            union Prior
             {
-                using Count = U64;
+                Next* next;
+                Book* book;
+            };
+        
+            struct [[gnu::packed]] Metadata
+            {
+                using Count = uint64_t;
 
                 Count cursors{1};
                 Count tables{1};
             };
 
-            static_assert(sizeof(Statistics) == 16);
+            static_assert(sizeof(Metadata) == 16);
 
-            using Container = Array<U8, 4096 - sizeof(Statistics) - sizeof(Data*)>;
+            using Container = array<byte, 4096 - sizeof(Metadata) - sizeof(byte[8])- sizeof(Next*)>;
 
-            Statistics statistics;
-            Container  container;
-            Data*      next{nullptr};
+            Next();            
+            Next(This const&) = delete;
+            Next(This&&) = delete;
+
+            auto operator=(This const&) -> This& = delete;
+            auto operator=(This&&) -> This& = delete;
+
+            ~Next();
+
+        private:
+            //
+            // Book_Next (4096b)
+            // -----------------------------------------------------------------
+            // | metadata (16b) | next (8b) | prior (8b) | container (4064b) |
+            // -----------------------------------------------------------------
+            //
+            Metadata  m_metadata;
+            Next*     m_next{nullptr};
+            Prior*    m_prior;
+            Container m_container;
         };
-        
-        static_assert(sizeof(Statistics) == 4096);
 
+        static_assert(sizeof(Next) == 4096);       
 
-        class [[packed]] Page
+        class [[gnu::packed]] Page
         {
         public:
             using This = Page;
 
-            class [[packed]] Container
+            class [[gnu::packed]] Container
             {
             public:
                 using This  = Container;
-                using Item  = U8;
-                using Items = Array<Item, 128 - (sizeof(Page*) * 2 + sizeof(Count))>;
-                using Count = U64;
+                using Count = uint64_t;
+                using Value = byte;
+                using Base  = array<Value, 128 - (sizeof(Page*) * 2 + sizeof(Count))>;
 
                 class Iterator
                 {
                 public:
                     using This       = Iterator;
-                    using Item       = Book::Page::Container::Item;
-                    using Difference = IX;
-        
-                    Iterator(Item* pointer);
-                    Iterator(This const&) = default;
-                    Iterator(This&&) = default;
+                    using Tag        = random_access_iterator_tag;
+                    using Value      = Container::Value;
+                    using Pointer    = Value*;
+                    using Reference  = Value&;
+                    using Difference = ptrdiff_t;
 
-                    auto operator=(This const&) -> This& = default;
-                    auto operator=(This&&) -> This& = default;
+                    Iterator() noexcept = default;
+                    explicit Iterator(Pointer pointer) noexcept;
+                    Iterator(This const&) noexcept = default;
+                    Iterator(This&&) noexcept = default;
+
+                    auto operator=(This const&) noexcept -> This& = default;
+                    auto operator=(This&&) noexcept -> This& = default;
 
                    ~Iterator() = default; 
 
-                    [[nodiscard]] auto pointer() noexcept -> Item*;
-                    [[nodiscard]] auto pointer() const noexcept -> Item const*;
+                    [[nodiscard]] auto operator<=>(This const& other) const noexcept -> strong_ordering = default;
+                    [[nodiscard]] auto operator==(This const&) const noexcept -> bool = default;
+                    [[nodiscard]] auto operator!=(This const&) const noexcept -> bool = default;
+                    [[nodiscard]] auto operator>(This const&) const noexcept -> bool = default;
+                    [[nodiscard]] auto operator<(This const&) const noexcept -> bool = default;
+                    [[nodiscard]] auto operator>=(This const&) const noexcept -> bool = default;
+                    [[nodiscard]] auto operator<=(This const&) const noexcept -> bool = default;
 
-                    [[nodiscard]] auto operator*() noexcept -> Item&;
-                    [[nodiscard]] auto operator*() const noexcept -> Item const&;
+                    [[nodiscard]] auto operator*() const noexcept -> Reference;
 
-                    auto operator++() noexcept -> This;
+                    auto operator++() noexcept -> This&;
                     auto operator++(int) noexcept -> This;
 
-                    auto operator--() noexcept -> This;
+                    auto operator--() noexcept -> This&;
                     auto operator--(int) noexcept -> This;
 
-                    [[nodiscard]] auto operator+(This const& other) const noexcept -> Difference;
                     [[nodiscard]] auto operator+(Difference offset) const noexcept -> This;
+                    friend auto operator+(Difference const sentinal, This const& iterator) noexcept -> This;
 
                     [[nodiscard]] auto operator-(This const& other) const noexcept -> Difference;
                     [[nodiscard]] auto operator-(Difference offset) const noexcept -> This;
@@ -108,11 +155,10 @@ namespace hack
                     auto operator+=(Difference offset) noexcept -> This&;
                     auto operator-=(Difference offset) noexcept -> This&;
 
-                    [[nodiscard]] auto operator[](Difference offset) noexcept -> Item&;
-                    [[nodiscard]] auto operator[](Difference offset) const noexcept -> Item const&;
+                    [[nodiscard]] auto operator[](Difference offset) const noexcept -> Reference;
 
                 private:
-                    Item* m_pointer;
+                    Pointer m_pointer;
                 };
 
                 Container();
@@ -124,8 +170,8 @@ namespace hack
     
                 ~Container() = default;
 
-                [[nodiscard]] auto items() noexcept -> Items&;  
-                [[nodiscard]] auto items() const noexcept -> Items const&;  
+                [[nodiscard]] auto base() noexcept -> Base&;  
+                [[nodiscard]] auto base() const noexcept -> Base const&;  
 
                 [[nodiscard]] auto count() const noexcept -> Count;
                 [[nodiscard]] auto capacity() const noexcept -> Count;
@@ -137,29 +183,26 @@ namespace hack
                 [[nodiscard]] auto end() noexcept -> Iterator;
                 [[nodiscard]] auto end() const noexcept -> Iterator const;
 
-                [[nodiscard]] auto operator[](Count offset) noexcept -> Item&;
-                [[nodiscard]] auto operator[](Count offset) const noexcept -> Item const&;
+                [[nodiscard]] auto operator[](Count offset) noexcept -> Value&;
+                [[nodiscard]] auto operator[](Count offset) const noexcept -> Value const&;
 
-                [[nodiscard]] auto at() -> Item&;
-                [[nodiscard]] auto at() const -> Item const&;
+                [[nodiscard]] auto at() -> Value&;
+                [[nodiscard]] auto at() const -> Value const&;
 
                 [[nodiscard]] auto is_empty() const noexcept -> bool;
                 [[nodiscard]] auto is_full() const noexcept -> bool;
 
-                // Shifts all items once to the left.
-                // Note: this decrements `count`.
                 auto shift_left() noexcept -> void;
 
             private:
-                Items m_items;
+                Base  m_base;
                 Count m_count;
-            };            
+            };
 
             Page() = default;
             Page(This const&) = delete;
             Page(This&&) = delete;
 
-            // Inserts itself between `prior` and `prior.next`.
             Page(This& prior);
 
             auto operator=(This const&) -> This& = delete;
@@ -170,28 +213,23 @@ namespace hack
             [[nodiscard]] auto operator==(This const& other) const noexcept -> bool;
             [[nodiscard]] auto operator!=(This const& other) const noexcept -> bool;
     
-            [[nodiscard]] auto next() noexcept -> Item&;
-            [[nodiscard]] auto next() const noexcept -> Item const&;
+            [[nodiscard]] auto next() noexcept -> This&;
+            [[nodiscard]] auto next() const noexcept -> This const&;
 
-            [[nodiscard]] auto prior() noexcept -> Item&;
-            [[nodiscard]] auto prior() const noexcept -> Item const&;   
+            [[nodiscard]] auto prior() noexcept -> This&;
+            [[nodiscard]] auto prior() const noexcept -> This const&;   
 
             [[nodiscard]] auto container() noexcept -> Container&;
             [[nodiscard]] auto container() const noexcept -> Container const&;
 
-            // Checks if it's not linked to any other `Page`.
             [[nodiscard]] auto is_alone() const noexcept -> bool;
 
-            // Extracts itself from between `prior` and `next`.
             auto extract() noexcept -> void;
 
-            // Inserts itself between `prior` and `prior.next`.
             auto insert(This& prior) noexcept -> void;
 
-            // Prepends itself onto `next`.
             auto prepend(This& next) noexcept -> void;
 
-            // Appends itself onto `prior`.
             auto append(This& prior) noexcept -> void;
 
         private:
@@ -205,82 +243,173 @@ namespace hack
         class Iterator
         {
         public:
-            using This = Iterator;
-            using Item = Book::Item;
+            using This       = Iterator;
+            using Tag        = forward_iterator_tag;
+            using Value      = Page;
+            using Pointer    = Value*;
+            using Reference  = Value&;
+            using Difference = ptrdiff_t;
 
+            Iterator() noexcept = default;
+            explicit Iterator(Pointer pointer) noexcept;
+            Iterator(This const&) noexcept = default;
+            Iterator(This&&) noexcept = default;
+
+            auto operator=(This const&) noexcept -> This& = default;
+            auto operator=(This&&) noexcept -> This& = default;
+
+            ~Iterator() = default;
+
+            [[nodiscard]] auto operator==(This const& other) const noexcept -> bool = default;
+            [[nodiscard]] auto operator!=(This const& other) const noexcept -> bool = default;
+
+            [[nodiscard]] auto operator*() const noexcept -> Reference;
+
+            [[nodiscard]] auto operator++() noexcept -> This&;
+            [[nodiscard]] auto operator++(int) noexcept -> This;
 
         private:
-        
+            Pointer m_pointer;
         };
 
-        // Grows towards the left.
-        class Table
+        class [[gnu::packed]] Table
         {
         public:
-        	using This     = Table;       
-            using Which    = U8;
-            using Switch   = bool;
-            using Switches = B32;
-        	using Pages    = Array<Page, 32>;
+        	using This   = Table;       
+            using Which  = byte;
+            using Lever  = bool;
+            using Levers = uint32_t;
+        	using Pages  = array<Page, 32>;
 
-        	Table(Keys* keys) noexcept;
+        	Table(Pages* pages) noexcept;
         	Table(This const& other) noexcept = default;
         	Table(This&& other) = delete;
 
-        	auto operator=(This const& other) -> This& = default;
-        	auto operator=(This&& other) -> This& = delete;
+        	auto operator=(This const&) -> This& = default;
+        	auto operator=(This&&) -> This& = delete;
 
         	~Table() noexcept = default;
 
             [[nodiscard]] auto pages() noexcept -> Pages&;
             [[nodiscard]] auto pages() const noexcept -> Pages const&;
 
-            [[nodiscard]] auto switches() const noexcept -> Switches;
+            [[nodiscard]] auto levers() const noexcept -> Levers;
 
-            [[nodiscard]] auto operator[](Which const page) const noexcept -> Switch;
-            [[nodiscard]] auto switch(Which const page) const noexcept -> Switch;
+            [[nodiscard]] auto operator[](Which const page) const noexcept -> Lever;
+            [[nodiscard]] auto lever() const noexcept -> Levers;
 
             auto flip(Which const page) noexcept -> void;
 
         private:
-        	Pages*    m_pages;
-        	Switches  m_switches{0};
-            U32 const m_padding;
+        	Pages* m_pages;
+        	Levers m_switches{0};
+            byte   m_padding[20];
         };
 
-        static_assert(sizeof(Table) == 16);
+        static_assert(sizeof(Table) == 32);
 
-        // Grows towards the right.
         class Cursor
         {
         public:
-            struct Statistics
+            using This = Cursor;
+            
+            struct Metadata
             {
-                using Count = U64;
+                using Count = uint64_t;
 
                 Count row;
                 Count column;
             };
 
-            using This = Cursor;
+            Cursor();
+            Cursor(This const&);
             
         private:
-            Book::Iterator m_book_iterator;
-            Page::Iterator m_page_iterator;
-            Statistics     m_statistics;
+            Iterator                  m_book_iterator;
+            Page::Container::Iterator m_page_iterator;
+            Metadata                  m_metadata;
         };
 
         static_assert(sizeof(Cursor) == 32);
 
         using This = Book;
-        using Container = Array<U8, 4096 - sizeof(Statistics) - sizeof(Data::Statistics) - sizeof(Data*)>;
+        using Container = array<byte, 4096 - sizeof(Metadata)
+                                           - sizeof(Next::Metadata)
+                                           - sizeof(Next*)
+                                           - sizeof(Flags)>;
+        using Value = Page;
+
+        Book(Flags flags);
+        Book(This const&) = delete;
+        Book(This&&) = delete;
+
+        auto operator=(This const&) -> This& = delete;
+        auto operator=(This&&) -> This& = delete;
+    
+        ~Book() noexcept;
+
+        [[nodiscard]] auto metadata() const noexcept -> Metadata const&;
+        [[nodiscard]] auto data_metadata() const noexcept -> Next::Metadata const&;
 
     private:
-        Statistics       m_statistics;
-        Data::Statistics m_data_statistics;
-        Container        m_container;
-        Data*            m_next{nullptr};
+        //
+        // Book (4096b)
+        // -------------------------------------------------------------------------------------
+        // | metadata (32b) | data_metadata (16b) | flags (8b) | next (8b) | container (4032b) |
+        // -------------------------------------------------------------------------------------
+        //
+        
+        Metadata       m_metadata;
+        Next::Metadata m_data_metadata;
+        Flags          m_flags;
+        Next*          m_next;
+        Container      m_container;
     };
 
     static_assert(sizeof(Book) == 4096);
+
+    using Book_Flags         = Book::Flags;
+    using Book_Metadata      = Book::Metadata;
+    using Book_Next          = Book::Next;
+    using Book_Data_Metadata = Book_Next::Metadata;
+    using Book_Page          = Book::Page;
+    using Book_Page_Iterator = Book_Page::Container::Iterator;
+    using Book_Iterator      = Book::Iterator;
+    using Book_Table         = Book::Table;
+    using Book_Cursor        = Book::Cursor;
 }
+
+namespace std
+{   
+    using hack::Book_Page_Iterator,
+          hack::Book_Iterator;
+    
+    template<>
+    struct iterator_traits<Book_Page_Iterator>
+    {
+        using Class = Book_Page_Iterator;
+
+        using iterator_category = Class::Tag;
+        using value_type        = Class::Value;
+        using pointer           = Class::Pointer;
+        using reference         = Class::Reference;
+        using difference_type   = Class::Difference;
+
+        static_assert(random_access_iterator<Class>);
+    };
+    
+    template<>
+    struct iterator_traits<Book_Iterator>
+    {
+        using Class = Book_Iterator;
+
+        using iterator_category = Class::Tag;
+        using value_type        = Class::Value;
+        using pointer           = Class::Pointer;
+        using reference         = Class::Reference;
+        using difference_type   = Class::Difference;
+
+        static_assert(forward_iterator<Class>);
+    };
+}
+
