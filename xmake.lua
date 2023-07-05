@@ -4,7 +4,7 @@ set_warnings('everything')
 set_toolchains('clang')
 set_languages('c++23')
 
-add_cxxflags('-fmodule-map-file=build/std.modulemap')
+add_cxxflags('-Wno-c++98-compat', '-Wno-pre-c++20-compat', '-fimplicit-modules', '-fimplicit-module-maps', '-stdlib=libc++')
 
 add_includedirs('.')
 

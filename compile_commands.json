@@ -1,11 +1,11 @@
 [
 {
   "directory": "/home/k/Projects/hack",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-m64", "-Weverything", "-O3", "-std=c++23", "-I.", "-fmodule-map-file=build/std.modulemap", "-DNDEBUG", "-o", "build/.objs/hack/linux/x86_64/release/source/hack/book.cpp.o", "source/hack/book.cpp"],
-  "file": "source/hack/book.cpp"
+  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-m64", "-Weverything", "-O3", "-std=c++23", "-I.", "-Wno-c++98-compat", "-Wno-pre-c++20-compat", "-fimplicit-modules", "-fimplicit-module-maps", "-stdlib=libc++", "-DNDEBUG", "-o", "build/.objs/hack/linux/x86_64/release/source/hack/file-file_part_iterator.cpp.o", "source/hack/file-file_part_iterator.cpp"],
+  "file": "source/hack/file-file_part_iterator.cpp"
 },
 {
   "directory": "/home/k/Projects/hack",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-m64", "-Weverything", "-O3", "-std=c++23", "-I.", "-fmodule-map-file=build/std.modulemap", "-DNDEBUG", "-o", "build/.objs/hack/linux/x86_64/release/source/main.cpp.o", "source/main.cpp"],
+  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-m64", "-Weverything", "-O3", "-std=c++23", "-I.", "-Wno-c++98-compat", "-Wno-pre-c++20-compat", "-fimplicit-modules", "-fimplicit-module-maps", "-stdlib=libc++", "-DNDEBUG", "-o", "build/.objs/hack/linux/x86_64/release/source/main.cpp.o", "source/main.cpp"],
   "file": "source/main.cpp"
-}]
+}

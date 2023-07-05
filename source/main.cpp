@@ -1,3 +1,4 @@
+#include <iostream>
 
 template<typename... Ts>
 auto discard(Ts...) -> void {}
