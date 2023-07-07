@@ -1,18 +1,9 @@
-module;
-
-#include <cstdint>
-#include <cstddef>
-#include <compare>
-#include <iterator>
-
 export module hack.file:file_part_iterator;
+
+import std;
 
 namespace hack
 {
-
-using std::uint8_t;
-using std::ptrdiff_t;
-using std::strong_ordering;
 
 export
 class File_Part_Iterator;
@@ -21,10 +12,10 @@ class File_Part_Iterator
 {
 public:
     using This       = File_Part_Iterator;
-    using Value      = uint8_t;
+    using Value      = std::uint8_t;
     using Pointer    = Value*;
     using Reference  = Value&;
-    using Difference = ptrdiff_t;
+    using Difference = std::ptrdiff_t;
 
     File_Part_Iterator() noexcept = default;
     explicit File_Part_Iterator(Pointer pointer) noexcept;
@@ -36,13 +27,7 @@ public:
 
     ~File_Part_Iterator() noexcept = default;
 
-    [[nodiscard]] auto operator<=>(This const& other) const noexcept -> strong_ordering = default;
-    [[nodiscard]] auto operator==(This const& other) const noexcept -> bool = default;
-    [[nodiscard]] auto operator!=(This const& other) const noexcept -> bool = default;
-    [[nodiscard]] auto operator<(This const& other) const noexcept -> bool = default;
-    [[nodiscard]] auto operator>(This const& other) const noexcept -> bool = default;
-    [[nodiscard]] auto operator<=(This const& other) const noexcept -> bool = default;
-    [[nodiscard]] auto operator>=(This const& other) const noexcept -> bool = default;
+    friend auto operator<=>(This const& left, This const& right) noexcept -> std::strong_ordering = default;
 
     [[nodiscard]] auto operator*() const noexcept -> Reference;
     [[nodiscard]] auto operator->() const noexcept -> Pointer;
@@ -80,12 +65,10 @@ auto operator+(
 namespace std
 {
 
-using hack::File_Part_Iterator;
-
 template<>
-struct iterator_traits<File_Part_Iterator>
+struct iterator_traits<hack::File_Part_Iterator>
 {       
-    using Class = File_Part_Iterator;
+    using Class = hack::File_Part_Iterator;
         
     using iterator_category = contiguous_iterator_tag;
     using value_type        = Class::Value;

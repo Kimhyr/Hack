@@ -1,32 +1,13 @@
-module;
-
-#include <cstdint>
-#include <array>
-#include <iterator>
-
 export module hack.file:file_part;
 
 import :file_part_iterator;
+import hack.utilities;
+import hack.system;
 
-// import hack.system;
-
-namespace hack
-{
-
-class System
-{
-public:
-    static constexpr auto PAGE_SIZE = 4096;
-};
-
-}
+import std;
 
 namespace hack
 {
-
-using std::uint8_t, std::uint64_t;
-using std::array;
-using std::reverse_iterator;
 
 export
 class File_Part;
@@ -34,48 +15,82 @@ class File_Part;
 class File_Part
 {
 public:
-    static constexpr auto SIZE = System::PAGE_SIZE / 32;
-        
-    using This      = File_Part;
-    using Byte      = uint8_t;
-    using Count     = uint64_t;
-    using Container = array<Byte, SIZE - sizeof(Byte) * (sizeof(This*) * 2 + sizeof(Count))>;
-    using Iterator  = File_Part_Iterator;
+    using This     = File_Part;
+    using Value    = std::uint8_t;
+    using Count    = std::uint64_t;
+    using Iterator = File_Part_Iterator;
 
-    File_Part();
+    static constexpr auto SIZE = System::PAGE_SIZE / 32;
+    static constexpr auto CAPACITY = SIZE - (sizeof(This*) * 2 + sizeof(Count));
+
+    using Data     = std::array<std::uint8_t, CAPACITY>;
+
+    File_Part() noexcept = default;
     File_Part(This const&) = delete;
     File_Part(This&&) = delete;
+    File_Part(This& prior) noexcept;
 
     auto operator=(This const&) noexcept -> This& = delete;
     auto operator=(This&&) noexcept -> This& = delete;
 
     ~File_Part();
 
-    [[nodiscard]] auto next() noexcept -> This&;
-    [[nodiscard]] auto next() const noexcept -> This const&;
+    [[nodiscard]] auto operator[](Count offset) noexcept -> Value&;
+    [[nodiscard]] auto operator[](Count offset) const noexcept -> Value const&;
+    
+    [[nodiscard]] auto at(Count offset) -> Value&;
+    [[nodiscard]] auto at(Count offset) const -> Value const&;
+    
+    [[nodiscard]] auto front() noexcept -> Value&;
+    [[nodiscard]] auto front() const noexcept -> Value const&;
+
+    [[nodiscard]] auto back() noexcept -> Value&;
+    [[nodiscard]] auto back() const noexcept -> Value const&;
 
     [[nodiscard]] auto prior() noexcept -> This&;
     [[nodiscard]] auto prior() const noexcept -> This const&;
 
+    [[nodiscard]] auto next() noexcept -> This&;
+    [[nodiscard]] auto next() const noexcept -> This const&;
+
+    [[nodiscard]] auto data() noexcept -> Data&;
+    [[nodiscard]] auto data() const noexcept -> Data const&;
+
+    [[nodiscard]] auto begin() noexcept -> Iterator;
+    [[nodiscard]] auto cbegin() const noexcept -> Iterator;
+
+    [[nodiscard]] auto end() noexcept -> Iterator;
+    [[nodiscard]] auto cend() const noexcept -> Iterator;
+
+    [[nodiscard]] auto rbegin() noexcept -> std::reverse_iterator<Iterator>; 
+    [[nodiscard]] auto crbegin() const noexcept -> std::reverse_iterator<Iterator>;
+    
+    [[nodiscard]] auto rend() noexcept -> std::reverse_iterator<Iterator>;
+    [[nodiscard]] auto crend() const noexcept -> std::reverse_iterator<Iterator>;
+
     [[nodiscard]] auto count() const noexcept -> Count;
+    [[nodiscard]] auto capacity() const noexcept -> Count;
+    [[nodiscard]] auto space() const noexcept -> Count;
 
-    [[nodiscard]] auto container() const noexcept -> Container const&;
+    [[nodiscard]] auto is_empty() const noexcept -> bool;
+    [[nodiscard]] auto is_full() const noexcept -> bool;
+    [[nodiscard]] auto is_alone() const noexcept -> bool;
 
-    [[nodiscard]] auto begin() const noexcept -> Iterator;
-    [[nodiscard]] auto rbegin() const noexcept -> reverse_iterator<Iterator>; 
+    auto insert(This& prior) noexcept -> void;
+    auto extract() noexcept -> void;
+    auto append(This& prior) noexcept -> void;
+    auto prepend(This& next) noexcept -> void;
+    auto shift() -> void;
+    auto split(Count offset) noexcept -> void;
 
-    [[nodiscard]] auto end() const noexcept -> Iterator;
-    [[nodiscard]] auto rend() const noexcept -> reverse_iterator<Iterator>;
-
-
-    [[nodiscard]] auto end
-
+    friend auto operator==(This const& left, This const& right) noexcept -> bool;
+    friend auto operator!=(This const&, This const&) noexcept -> bool = default;
 
 private:
-    This*     m_next;
-    This*     m_prior;
-    Count     m_count;
-    Container m_container;
+    This* m_prior{this};
+    This* m_next;
+    Count m_count{0};
+    Data  m_data;
 };
 
 static_assert(sizeof(File_Part) == File_Part::SIZE && sizeof(File_Part) == 128);

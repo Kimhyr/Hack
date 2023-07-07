@@ -2,9 +2,16 @@ add_rules('mode.debug', 'mode.release')
 
 set_warnings('everything')
 set_toolchains('clang')
-set_languages('c++23')
+set_languages('c++20')
 
-add_cxxflags('-Wno-c++98-compat', '-Wno-pre-c++20-compat', '-fimplicit-modules', '-fimplicit-module-maps', '-stdlib=libc++')
+add_cxxflags(
+	'-Wno-c++98-compat',
+	'-Wno-pre-c++20-compat',
+	'-fmodules',
+	'-stdlib=libstdc++',
+	-- '-fmodule-map-file=source/module.modulemap'
+	'-fbuiltin-module-map'
+)
 
 add_includedirs('.')
 
