@@ -1,5 +1,7 @@
 module;
 
+#include <string_view>
+#include <iostream>
 #include <cstdint>
 #include <cstddef>
 #include <compare>
@@ -14,6 +16,15 @@ export module std;
 export
 namespace std
 {
+
+// string_view
+using ::std::string_view;
+
+// iostream
+using ::std::cout;
+using ::std::cerr;
+using ::std::endl;
+using ::std::operator<<;
 
 // cstdint
 using ::std::int8_t;

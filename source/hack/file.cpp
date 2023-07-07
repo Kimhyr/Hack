@@ -1,7 +1,7 @@
 module hack.file;
 
-namespace hack
-{
+import std;
+import hack.utilities;
 
 namespace hack
 {
@@ -202,8 +202,6 @@ auto File_Part::split(Count offset) noexcept -> void
 auto operator==(File_Part const& left, File_Part const& right) noexcept -> bool
 {
     return &left == &right;
-}
-
 }
 
 File_Part_Iterator::File_Part_Iterator(Pointer pointer) noexcept

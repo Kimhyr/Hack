@@ -1,16 +1,11 @@
 [
 {
   "directory": "/home/k/Projects/hack",
-  "arguments": ["/usr/local/bin/clang", "-c", "-Qunused-arguments", "-m64", "-Weverything", "-O3", "-std=c++20", "-I.", "-Wno-c++98-compat", "-Wno-pre-c++20-compat", "-fmodules", "-stdlib=libstdc++", "-DNDEBUG", "-o", "build/.objs/hack/linux/x86_64/release/source/hack/file-file_part_iterator.cpp.o", "source/hack/file-file_part_iterator.cpp"],
-  "file": "source/hack/file-file_part_iterator.cpp"
+  "arguments": ["/usr/local/bin/clang", "-c", "-Qunused-arguments", "-m64", "-Weverything", "-O3", "-std=c++20", "-I.", "-Wno-c++98-compat", "-Wno-pre-c++20-compat", "-fmodules", "-stdlib=libstdc++", "-fbuiltin-module-map", "-DNDEBUG", "-o", "build/.objs/hack/linux/x86_64/release/source/hack/file.cpp.o", "source/hack/file.cpp"],
+  "file": "source/hack/file.cpp"
 },
 {
   "directory": "/home/k/Projects/hack",
-  "arguments": ["/usr/local/bin/clang", "-c", "-Qunused-arguments", "-m64", "-Weverything", "-O3", "-std=c++20", "-I.", "-Wno-c++98-compat", "-Wno-pre-c++20-compat", "-fmodules", "-stdlib=libstdc++", "-DNDEBUG", "-o", "build/.objs/hack/linux/x86_64/release/source/main.cpp.o", "source/main.cpp"],
+  "arguments": ["/usr/local/bin/clang", "-c", "-Qunused-arguments", "-m64", "-Weverything", "-O3", "-std=c++20", "-I.", "-Wno-c++98-compat", "-Wno-pre-c++20-compat", "-fmodules", "-stdlib=libstdc++", "-fbuiltin-module-map", "-DNDEBUG", "-o", "build/.objs/hack/linux/x86_64/release/source/main.cpp.o", "source/main.cpp"],
   "file": "source/main.cpp"
-},
-{
-  "directory": "/home/k/Projects/hack",
-  "arguments": ["/usr/local/bin/clang", "-Qunused-arguments", "-m64", "-Weverything", "-O3", "-std=c++20", "-I.", "-Wno-c++98-compat", "-Wno-pre-c++20-compat", "-fmodules", "-stdlib=libstdc++", "-DNDEBUG", "-fmodules-cache-path=build/.gens/hack/linux/x86_64/release/rules/modules/cache", "-x", "c++", "-c", "source/std.cppm", "-o", "build/.objs/hack/linux/x86_64/release/source/std.cppm.o"],
-  "file": "source/std.cppm"
 }]
