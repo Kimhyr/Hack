@@ -1,0 +1,2 @@
+module hack.core.file;
+
