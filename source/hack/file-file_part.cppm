@@ -10,8 +10,6 @@ namespace hack
 {
 
 export
-class File_Part;
-
 class File_Part
 {
 public:
@@ -23,7 +21,7 @@ public:
     static constexpr auto SIZE = System::PAGE_SIZE / 32;
     static constexpr auto CAPACITY = SIZE - (sizeof(This*) * 2 + sizeof(Count));
 
-    using Data     = std::array<std::uint8_t, CAPACITY>;
+    using Data = std::array<std::uint8_t, CAPACITY>;
 
     File_Part() noexcept = default;
     File_Part(This const&) = delete;

@@ -6,8 +6,6 @@ namespace hack
 {
 
 export
-class File_Part_Iterator;
-
 class File_Part_Iterator
 {
 public:
