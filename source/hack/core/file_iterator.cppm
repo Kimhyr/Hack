@@ -2,6 +2,7 @@ export module hack.core.file_iterator;
 
 import std;
 import hack.core.file_part;
+import hack.utilities.types;
 
 namespace hack
 {
@@ -16,7 +17,7 @@ namespace hack
         using Const_Pointer   = Value const*;
         using Reference       = Value&;
         using Const_Reference = Value const&;
-        using Difference      = std::ptrdiff_t;
+        using Difference      = Difference;
 
         File_Iterator() noexcept = default;
         File_Iterator(This const&) noexcept = default;
@@ -27,6 +28,7 @@ namespace hack
         auto operator=(This&&) noexcept -> This& = default;
 
         [[nodiscard]] auto operator*() const noexcept -> Reference;
+        [[nodiscard]] auto operator->() const noexcept -> Pointer;
 
         auto operator++() noexcept -> This&;
         auto operator++(int) noexcept -> This;

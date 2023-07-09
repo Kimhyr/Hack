@@ -3,6 +3,7 @@ export module hack.core.file_part;
 import hack.core.file_part_iterator;
 import hack.utilities;
 import hack.system;
+import hack.utilities.types;
 
 import std;
 
@@ -13,8 +14,7 @@ namespace hack
     {
     public:
         using This     = File_Part;
-        using Value    = std::uint8_t;
-        using Count    = std::uint64_t;
+        using Value    = Byte;
         using Iterator = File_Part_Iterator;
 
         static constexpr auto SIZE = System::PAGE_SIZE / 32;

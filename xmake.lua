@@ -7,6 +7,7 @@ set_languages('c++20')
 add_cxxflags(
 	'-Wno-c++98-compat',
 	'-Wno-pre-c++20-compat',
+	'-Wno-pre-c++20-compat-pedantic',
 	'-fmodules',
 	'-stdlib=libstdc++',
 	-- '-fmodule-map-file=source/module.modulemap'

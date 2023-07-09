@@ -34,6 +34,7 @@ namespace std
     // cstdef
     using ::std::size_t;
     using ::std::ptrdiff_t;
+    using ::std::byte;
 
     // compare
     using ::std::strong_ordering;
@@ -49,6 +50,7 @@ namespace std
     using ::std::reverse_iterator;
     using ::std::contiguous_iterator;
     using ::std::bidirectional_iterator;
+    using ::std::distance;
 
     // array
     using ::std::array;

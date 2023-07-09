@@ -11,6 +11,11 @@ namespace hack
 		return *m_pointer;
 	}
 
+	auto File_Iterator::operator->() const noexcept -> Pointer
+	{
+		return m_pointer;
+	}
+
 	auto File_Iterator::operator++() noexcept -> This&
 	{
 		m_pointer = &m_pointer->next();
